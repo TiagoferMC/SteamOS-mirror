@@ -52,7 +52,7 @@ main() {
     local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions
                    ttf-firacode-nerd)
     local -a network=(net-tools openssh wireshark-qt geoip2-database bind ufw
-                      ufw-extras gufw dnscrypt-proxy wireguard-tools noip)
+                      ufw-extras gufw dnscrypt-proxy wireguard-tools mosh noip)
     local -a disk=(testdisk rsync)
     local -a audio=(realtime-privileges)
     local -a input=(xf86-input-wacom xf86-input-elographics onboard)
