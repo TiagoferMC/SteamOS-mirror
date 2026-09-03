@@ -86,7 +86,7 @@ main() {
 
     local groups=(libvirt render video audio input uinput plugdev realtime
                   wireshark wheel)
-    sudo usermod -aG "${groups[@]}" "$USER"
+    IFS=, sudo usermod -aG "${groups[*]}" "$USER"
 
     cd "${BASH_SOURCE%/*}" || exit 2
     setup_dnscrypt
