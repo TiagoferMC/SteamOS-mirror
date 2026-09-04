@@ -47,6 +47,12 @@ setup_v4l2loopback () {
         | sudo tee /etc/modprobe.d/v4l2loopback.conf
 }
 
+update-zsh () {
+    if ! zsh -i -c "omz update"; then
+        echo "oh-my-zsh update failed" >&2
+    fi
+}
+
 main() {
     sudo steamos-devmode enable --no-prompt
     local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions
@@ -97,7 +103,7 @@ main() {
     setup_v4l2loopback
     popd || exit 2
 
-    zsh && omz update
+    update-zsh
 }
 
 main
