@@ -86,16 +86,18 @@ main() {
 
     local groups=(libvirt render video audio input uinput plugdev realtime
                   wireshark wheel)
-    IFS=, sudo usermod -aG "${groups[*]}" "$USER"
+    IFS=,; sudo usermod -aG "${groups[*]}" "$USER"
 
+    pushd .
     cd "${BASH_SOURCE%/*}" || exit 2
     setup_dnscrypt
     setup_openssh
     setup_noip
     setup_wireguard
     setup_v4l2loopback
+    popd || exit 2
 
-    omz update
+    zsh && omz update
 }
 
 main
