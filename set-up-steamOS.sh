@@ -56,7 +56,7 @@ update-zsh () {
 main() {
     sudo steamos-devmode enable --no-prompt
     local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions
-                   ttf-firacode-nerd)
+                   skim fd ripgrep repgrep fzf ttf-firacode-nerd)
     local -a network=(net-tools openssh wireshark-qt geoip2-database bind ufw
                       ufw-extras gufw dnscrypt-proxy wireguard-tools mosh noip)
     local -a disk=(testdisk rsync)
