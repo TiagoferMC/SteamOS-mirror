@@ -57,8 +57,9 @@ main() {
     sudo steamos-devmode enable --no-prompt
     local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions
                    skim fd ripgrep repgrep fzf ttf-firacode-nerd)
-    local -a network=(net-tools openssh wireshark-qt geoip2-database bind ufw
-                      ufw-extras gufw dnscrypt-proxy wireguard-tools mosh noip)
+    local -a network=(net-tools openssh mosh netstat-nat nmap vulscan gnu-netcat
+                      openbsd-netcat wireshark-qt geoip2-database ufw ufw-extras
+                      gufw dnscrypt-proxy wireguard-tools noip)
     local -a disk=(testdisk rsync)
     local -a audio=(realtime-privileges)
     local -a input=(xf86-input-wacom xf86-input-elographics onboard)
