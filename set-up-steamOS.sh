@@ -1,12 +1,63 @@
 #!/usr/bin/env bash
 
+clean() {
+    paru -Scc --noconfirm
+}
+
 install() {
     paru -Syu --needed --overwrite '*' "$@"
     clean
 }
 
-clean() {
-    paru -Scc --noconfirm
+setup_groups () {
+    local groups=(libvirt render video audio input uinput plugdev realtime
+                  wireshark wheel)
+    IFS=,; sudo usermod -aG "${groups[*]}" "$USER"
+}
+
+install_packages () {
+    local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions
+                   skim fd ripgrep repgrep fzf ttf-firacode-nerd)
+    # gnu-netcat and openbsd-netcat are both options
+    # doggo is aur-only for now
+    local -a network=(iproute2 net-tools bind openssh mosh netstat-nat nmap
+                      masscan openbsd-netcat iperf iftop avahi whois ngrep hping
+                      tcpflow curl curlie httpie wget dog traceroute mtr
+                      nload vnstat websocat vulscan speedtest-cli tcpdump
+                      wireshark-qt wireshark-cli termshark geoip2-database ufw
+                      ufw-extras gufw dnscrypt-proxy wireguard-tools noip)
+    local -a disk=(testdisk rsync)
+    local -a audio=(realtime-privileges)
+    local -a input=(xf86-input-wacom xf86-input-elographics onboard)
+    local -a headers
+    mapfile -t headers < <(pacman -Qq \
+        | awk '/^linux(-[a-z0-9]+)*$/ && !/-headers/ && !/linux-firmware/ \
+               { print $0 "-headers" }')
+    local -a game=(mangohud lib32-mangohud gamemode gamescope lib32-gamescope
+                   xdg-desktop-portal-gamescope waydroid-helper-bin scopebuddy)
+    local -a image=(ffmpeg imagemagick ghostscript jbigkit libheif libjxl libraw
+                    libjpeg-turbo librsvg libtiff libultrahdr libwebp openjpeg2
+                    libwmf libzip ocl-icd openexr openjpeg2 djvulibre pango
+                    kdegraphics-thumbnailers qt5-imageformats qt6-imageformats
+                    kimageformats kimageformats5 ffmpegthumbs ffmpegthumbnailer)
+    local -a archive=(karchive karchive5 arj lrzip lzop 7zip unarchiver unrar)
+    local -a video=(scrcpy)
+
+    local -a packages=()
+    packages+=("${base[@]}")
+    packages+=("${network[@]}")
+    packages+=("${disk[@]}")
+    packages+=("${audio[@]}")
+    packages+=("${input[@]}")
+    packages+=("${headers[@]}")
+    packages+=("${game[@]}")
+    packages+=("${image[@]}")
+    packages+=("${archive[@]}")
+    packages+=("${video[@]}")
+
+    install "${packages[@]}"
+
+    setup_groups
 }
 
 setup_dnscrypt() {
@@ -47,55 +98,7 @@ setup_v4l2loopback () {
         | sudo tee /etc/modprobe.d/v4l2loopback.conf
 }
 
-update-zsh () {
-    if ! zsh -i -c "omz update"; then
-        echo "oh-my-zsh update failed" >&2
-    fi
-}
-
-main() {
-    sudo steamos-devmode enable --no-prompt
-    local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions
-                   skim fd ripgrep repgrep fzf ttf-firacode-nerd)
-    # gnu-netcat and openbsd-netcat are both options
-    local -a network=(net-tools openssh mosh netstat-nat nmap vulscan websocat
-                      openbsd-netcat wireshark-qt geoip2-database ufw ufw-extras
-                      gufw dnscrypt-proxy wireguard-tools noip)
-    local -a disk=(testdisk rsync)
-    local -a audio=(realtime-privileges)
-    local -a input=(xf86-input-wacom xf86-input-elographics onboard)
-    local -a headers
-    mapfile -t headers < <(pacman -Qq \
-        | awk '/^linux(-[a-z0-9]+)*$/ && !/-headers/ && !/linux-firmware/ \
-               { print $0 "-headers" }')
-    local -a game=(mangohud lib32-mangohud gamemode gamescope lib32-gamescope
-                   xdg-desktop-portal-gamescope waydroid-helper-bin scopebuddy)
-    local -a image=(ffmpeg imagemagick ghostscript jbigkit libheif libjxl libraw
-                    libjpeg-turbo librsvg libtiff libultrahdr libwebp openjpeg2
-                    libwmf libzip ocl-icd openexr openjpeg2 djvulibre pango
-                    kdegraphics-thumbnailers qt5-imageformats qt6-imageformats
-                    kimageformats kimageformats5 ffmpegthumbs ffmpegthumbnailer)
-    local -a archive=(karchive karchive5 arj lrzip lzop 7zip unarchiver unrar)
-    local -a video=(scrcpy)
-
-    local -a packages=()
-    packages+=("${base[@]}")
-    packages+=("${network[@]}")
-    packages+=("${disk[@]}")
-    packages+=("${audio[@]}")
-    packages+=("${input[@]}")
-    packages+=("${headers[@]}")
-    packages+=("${game[@]}")
-    packages+=("${image[@]}")
-    packages+=("${archive[@]}")
-    packages+=("${video[@]}")
-
-    install "${packages[@]}"
-
-    local groups=(libvirt render video audio input uinput plugdev realtime
-                  wireshark wheel)
-    IFS=,; sudo usermod -aG "${groups[*]}" "$USER"
-
+setup_services () {
     pushd .
     cd "${BASH_SOURCE%/*}" || exit 2
     setup_dnscrypt
@@ -104,8 +107,22 @@ main() {
     setup_wireguard
     setup_v4l2loopback
     popd || exit 2
+}
 
-    update-zsh
+update_zsh () {
+    if ! zsh -i -c "omz update"; then
+        echo "oh-my-zsh update failed" >&2
+    fi
+}
+
+main() {
+    sudo steamos-devmode enable --no-prompt
+
+    install_packages
+
+    setup_services
+
+    update_zsh
 }
 
 main
