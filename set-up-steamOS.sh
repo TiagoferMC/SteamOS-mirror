@@ -1,5 +1,354 @@
 #!/usr/bin/env bash
 
+# Globals
+UNLOCK=1
+INSTALL=1
+GROUP=1
+CONFIGURE=1
+ZSH=1
+
+# Install categories
+BASE=1
+NETWORK=1
+DISK=1
+AUDIO=1
+INPUT=1
+HEADERS=1
+GAME=1
+IMAGE=1
+ARCHIVE=1
+VIDEO=1
+
+# Group categories
+BASE_GROUP=1
+NETWORK_GROUP=1
+
+# Configure categories
+DNSCRYPT=1
+OPENSSH=1
+NOIP=1
+WIREGUARD=1
+V4L2LOOPBACK=1
+
+usage () {
+    echo "uhhhhhhh"
+}
+
+parse_args () {
+    # If first flag is positive (not -x), we want to invert the default behavior
+    if [[ $1 != "-x" && $1 != "--exclude" ]]; then
+        # Globals
+        UNLOCK=0
+        INSTALL=0
+        GROUP=0
+        CONFIGURE=0
+        ZSH=0
+
+        # Install categories
+        BASE=0
+        NETWORK=0
+        DISK=0
+        AUDIO=0
+        INPUT=0
+        HEADERS=0
+        GAME=0
+        IMAGE=0
+        ARCHIVE=0
+        VIDEO=0
+
+        # Group categories
+        BASE_GROUP=0
+        NETWORK_GROUP=0
+
+        # Configure categories
+        DNSCRYPT=0
+        OPENSSH=0
+        NOIP=0
+        WIREGUARD=0
+        V4L2LOOPBACK=0
+    fi
+
+    local options="hui:g:c:zx:"
+    local -a long_options=(help
+                           init
+                           unlock
+                           install:
+                           group:
+                           configure:
+                           config:
+                           conf:
+                           zsh
+                           exclude:
+                           ignore:)
+
+    if ! parsed="$(IFS=,; getopt -o "$options" -l "${long_options[*]}" -- "$@")"
+    then
+        usage >&2
+        exit 1
+    fi
+
+    eval set -- "$parsed"
+
+    while true; do
+        case "$1" in
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            -u|--unlock|--init)
+                UNLOCK=1
+                shift
+                ;;
+            -i|--install)
+                INSTALL=1
+                case "$2" in
+                    all)
+                        BASE=1
+                        NETWORK=1
+                        DISK=1
+                        AUDIO=1
+                        INPUT=1
+                        HEADERS=1
+                        GAME=1
+                        IMAGE=1
+                        ARCHIVE=1
+                        VIDEO=1
+                        GROUP=1
+                        BASE_GROUP=1
+                        NETWORK_GROUP=1
+                        shift
+                        ;;
+                    base)
+                        BASE=1
+                        GROUP=1
+                        shift
+                        ;;
+                    network)
+                        NETWORK=1
+                        GROUP=1
+                        shift
+                        ;;
+                    disk)
+                        DISK=1
+                        shift
+                        ;;
+                    audio)
+                        AUDIO=1
+                        shift
+                        ;;
+                    input)
+                        INPUT=1
+                        shift
+                        ;;
+                    headers)
+                        HEADERS=1
+                        shift
+                        ;;
+                    game)
+                        GAME=1
+                        shift
+                        ;;
+                    image)
+                        IMAGE=1
+                        shift
+                        ;;
+                    archive)
+                        ARCHIVE=1
+                        shift
+                        ;;
+                    video)
+                        VIDEO=1
+                        shift
+                        ;;
+                    *)
+                        break
+                        ;;
+                    esac
+                shift
+                ;;
+            -g|--group|--groups)
+                GROUP=1
+                case "$2" in
+                    all)
+                        BASE_GROUP=1
+                        NETWORK_GROUP=1
+                        shift
+                        ;;
+                    base)
+                        BASE_GROUP=1
+                        shift
+                        ;;
+                    network)
+                        NETWORK_GROUP=1
+                        shift
+                        ;;
+                    *)
+                        break
+                        ;;
+                esac
+                shift
+                ;;
+            -c|--configure|--config|--conf)
+                CONFIGURE=1
+                case "$2" in
+                    all)
+                        DNSCRYPT=1
+                        OPENSSH=1
+                        NOIP=1
+                        WIREGUARD=1
+                        V4L2LOOPBACK=1
+                        shift
+                        ;;
+                    dnscrypt)
+                        DNSCRYPT=1
+                        shift
+                        ;;
+                    openssh|ssh)
+                        OPENSSH=1
+                        shift
+                        ;;
+                    noip)
+                        NOIP=1
+                        shift
+                        ;;
+                    wireguard)
+                        WIREGUARD=1
+                        shift
+                        ;;
+                    v4l2loopback|v4l2)
+                        V4L2LOOPBACK=1
+                        shift
+                        ;;
+                    *)
+                        break
+                        ;;
+                    esac
+                shift
+                ;;
+            -z|--zsh)
+                ZSH=1
+                shift
+                ;;
+            -x|--exclude|--ignore)
+                case "$2" in
+                    unlock|init)
+                        UNLOCK=0
+                        shift
+                        ;;
+                    install)
+                        INSTALL=0
+                        BASE=0
+                        NETWORK=0
+                        DISK=0
+                        AUDIO=0
+                        INPUT=0
+                        HEADERS=0
+                        GAME=0
+                        IMAGE=0
+                        ARCHIVE=0
+                        VIDEO=0
+                        shift
+                        ;;
+                    base)
+                        BASE=0
+                        shift
+                        ;;
+                    network)
+                        NETWORK=0
+                        shift
+                        ;;
+                    disk)
+                        DISK=0
+                        shift
+                        ;;
+                    audio)
+                        AUDIO=0
+                        shift
+                        ;;
+                    input)
+                        INPUT=0
+                        shift
+                        ;;
+                    headers)
+                        HEADERS=0
+                        shift
+                        ;;
+                    game)
+                        GAME=0
+                        shift
+                        ;;
+                    image)
+                        IMAGE=0
+                        shift
+                        ;;
+                    archive)
+                        ARCHIVE=0
+                        shift
+                        ;;
+                    video)
+                        VIDEO=0
+                        shift
+                        ;;
+                    group|groups)
+                        GROUP=0
+                        BASE_GROUP=0
+                        NETWORK_GROUP=0
+                        shift
+                        ;;
+                    configure|config|conf)
+                        CONFIGURE=0
+                        DNSCRYPT=0
+                        OPENSSH=0
+                        NOIP=0
+                        WIREGUARD=0
+                        V4L2LOOPBACK=0
+                        shift
+                        ;;
+                    dnscrypt)
+                        DNSCRYPT=0
+                        shift
+                        ;;
+                    openssh|ssh)
+                        OPENSSH=0
+                        shift
+                        ;;
+                    noip)
+                        NOIP=0
+                        shift
+                        ;;
+                    wireguard)
+                        WIREGUARD=0
+                        shift
+                        ;;
+                    v4l2loopback|v4l2)
+                        V4L2LOOPBACK=0
+                        shift
+                        ;;
+                    zsh)
+                        ZSH=0
+                        shift
+                        ;;
+                    *)
+                        break
+                        ;;
+                    esac
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "$1"
+                usage >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    if [[ -n $* ]]; then usage >&2; exit 1; fi
+}
+
 clean() {
     paru -Scc --noconfirm
 }
@@ -9,75 +358,106 @@ install() {
     clean
 }
 
-setup_groups () {
-    local groups=(libvirt render video audio input uinput plugdev realtime
-                  wireshark wheel)
-    IFS=,; sudo usermod -aG "${groups[*]}" "$USER"
-}
-
 install_packages () {
-    local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions
-                   skim fd ripgrep repgrep fzf ttf-firacode-nerd)
+    local -a packages=()
+
+    # Base utilities
+    # util-linux is already required by base, as well as sed and (g)awk
+    local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions bat
+                   eza skim fzf ripgrep repgrep fd ttf-firacode-nerd)
+    [[ $BASE == 1 ]] && packages+=("${base[@]}")
+
+    # Network utilities
     # gnu-netcat and openbsd-netcat are both options
     # doggo is aur-only for now
-    local -a network=(iproute2 net-tools bind openssh mosh netstat-nat nmap
-                      masscan openbsd-netcat iperf iftop avahi whois ngrep hping
-                      tcpflow curl curlie httpie wget dog traceroute mtr
-                      nload vnstat websocat vulscan speedtest-cli tcpdump
-                      wireshark-qt wireshark-cli termshark geoip2-database ufw
-                      ufw-extras gufw dnscrypt-proxy wireguard-tools noip)
+    local -a network=(iproute2 net-tools bind iptables nftables openssh mosh
+                      netstat-nat nmap masscan vulscan openbsd-netcat iperf dog
+                      iftop avahi whois ngrep hping miniupnpc miniupnpd coturn
+                      tcpflow curl curlie httpie websocat wget traceroute mtr
+                      nload vnstat speedtest-cli tcpdump termshark ufw gufw
+                      ufw-extras conntrack-tools wireshark-qt wireshark-cli
+                      geoip2-database dnscrypt-proxy wireguard-tools noip)
+    [[ $NETWORK == 1 ]] && packages+=("${network[@]}")
+
+    # DIsk utilities
     local -a disk=(testdisk rsync)
+    [[ $DISK == 1 ]] && packages+=("${disk[@]}")
+
+    # Audio utilities
     local -a audio=(realtime-privileges)
+    [[ $AUDIO == 1 ]] && packages+=("${audio[@]}")
+
+    # Input utilities
     local -a input=(xf86-input-wacom xf86-input-elographics onboard)
+    [[ $INPUT == 1 ]] && packages+=("${input[@]}")
+
+    # Linux headers
     local -a headers
-    mapfile -t headers < <(pacman -Qq \
+    [[ $HEADERS == 1 ]] && mapfile -t headers < <(pacman -Qq \
         | awk '/^linux(-[a-z0-9]+)*$/ && !/-headers/ && !/linux-firmware/ \
                { print $0 "-headers" }')
+    [[ $HEADERS == 1 ]] && packages+=("${headers[@]}")
+
+    # Game utilitiess
     local -a game=(mangohud lib32-mangohud gamemode gamescope lib32-gamescope
                    xdg-desktop-portal-gamescope waydroid-helper-bin scopebuddy)
+    [[ $GAME == 1 ]] && packages+=("${game[@]}")
+
+    # Image utilities
     local -a image=(ffmpeg imagemagick ghostscript jbigkit libheif libjxl libraw
                     libjpeg-turbo librsvg libtiff libultrahdr libwebp openjpeg2
                     libwmf libzip ocl-icd openexr openjpeg2 djvulibre pango
                     kdegraphics-thumbnailers qt5-imageformats qt6-imageformats
                     kimageformats kimageformats5 ffmpegthumbs ffmpegthumbnailer)
-    local -a archive=(karchive karchive5 arj lrzip lzop 7zip unarchiver unrar)
-    local -a video=(scrcpy)
+    [[ $IMAGE == 1 ]] && packages+=("${image[@]}")
 
-    local -a packages=()
-    packages+=("${base[@]}")
-    packages+=("${network[@]}")
-    packages+=("${disk[@]}")
-    packages+=("${audio[@]}")
-    packages+=("${input[@]}")
-    packages+=("${headers[@]}")
-    packages+=("${game[@]}")
-    packages+=("${image[@]}")
-    packages+=("${archive[@]}")
-    packages+=("${video[@]}")
+    # Archive utilities
+    local -a archive=(karchive karchive5 arj lrzip lzop 7zip unarchiver unrar)
+    [[ $ARCHIVE == 1 ]] && packages+=("${archive[@]}")
+
+    # Video utilities
+    local -a video=(scrcpy)
+    [[ $VIDEO == 1 ]] && packages+=("${video[@]}")
 
     install "${packages[@]}"
-
-    setup_groups
 }
 
-setup_dnscrypt() {
+add_groups () {
+    local -a groups=()
+
+    # consider libvirt
+    local -a base=(wheel render video audio input uinput plugdev realtime)
+    [[ $BASE_GROUP == 1 ]] && groups+=("${base[@]}")
+
+    local -a network=(wireshark)
+    [[ $NETWORK_GROUP == 1 ]] && groups+=("${network[@]}")
+
+    IFS=,; sudo usermod -aG "${groups[*]}" "$USER"
+}
+
+config_dnscrypt() {
+    echo "Configuring dnscrypt-proxy..."
     sudo cp -r ./etc/* /etc
     sudo systemctl enable dnscrypt-proxy
 }
 
-setup_openssh() {
+config_openssh() {
+    echo "Configuring OpenSSH..."
     sudo systemctl enable sshd
 }
 
-setup_noip() {
+config_noip() {
+    echo "Configuring no-ip..."
     sudo systemctl enable noip
 }
 
-setup_wireguard() {
+config_wireguard() {
+    echo "Configuring Wireguard..."
     sudo systemctl enable wg-quick@wg0
 }
 
-setup_v4l2loopback () {
+config_v4l2loopback () {
+    echo "Configuring V4L2loopback..."
     git clone https://github.com/v4l2loopback/v4l2loopback.git
     cd v4l2loopback || exit 2
     make v4l2loopback
@@ -98,14 +478,14 @@ setup_v4l2loopback () {
         | sudo tee /etc/modprobe.d/v4l2loopback.conf
 }
 
-setup_services () {
+config_services () {
     pushd .
     cd "${BASH_SOURCE%/*}" || exit 2
-    setup_dnscrypt
-    setup_openssh
-    setup_noip
-    setup_wireguard
-    setup_v4l2loopback
+    [[ $DNSCRYPT == 1 ]] && config_dnscrypt
+    [[ $OPENSSH == 1 ]] && config_openssh
+    [[ $NOIP == 1 ]] && config_noip
+    [[ $WIREGUARD == 1 ]] && config_wireguard
+    [[ $V4L2LOOPBACK == 1 ]] && config_v4l2loopback
     popd || exit 2
 }
 
@@ -115,15 +495,24 @@ update_zsh () {
     fi
 }
 
-main() {
-    sudo steamos-devmode enable --no-prompt
+main () {
 
-    install_packages
+    if [[ -n "$*"  ]]; then
+        parse_args "$@"
+    fi
 
-    setup_services
+    [[ $UNLOCK == 1 ]] && steamos-devmode enable --no-prompt
 
-    update_zsh
+    [[ $INSTALL == 1 ]] && install_packages
+
+    [[ $GROUP == 1 ]] && add_groups
+
+    [[ $CONFIGURE == 1 ]] && config_services
+
+    [[ $ZSH == 1 ]] && update_zsh
+
+    return 0
 }
 
-main
+main "$@"
 
