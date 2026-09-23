@@ -31,7 +31,15 @@ WIREGUARD=1
 V4L2LOOPBACK=1
 
 usage () {
-    echo "uhhhhhhh"
+    echo "Usage: ./$0 [-u -i *option* -g *option* -c *option* -z]
+
+FLAGS:
+-u --unlock
+-i --install  all base network disk audio input headers game image archive video
+-g --groups   base network
+-c --configure dnscrypt openssh noip wireguard v4l2lookback
+-z --zsh
+"
 }
 
 parse_args () {
