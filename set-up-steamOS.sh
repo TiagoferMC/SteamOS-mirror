@@ -28,7 +28,9 @@ DNSCRYPT=1
 OPENSSH=1
 NOIP=1
 WIREGUARD=1
+FIREWALL=1
 V4L2LOOPBACK=1
+WACOM=1
 
 usage () {
     echo "Usage: ./$0 [-u -i *option* -g *option* -c *option* -z]
@@ -73,7 +75,9 @@ parse_args () {
         OPENSSH=0
         NOIP=0
         WIREGUARD=0
+        FIREWALL=0
         V4L2LOOPBACK=0
+        WACOM=0
     fi
 
     local options="hui:g:c:zx:"
@@ -204,7 +208,9 @@ parse_args () {
                         OPENSSH=1
                         NOIP=1
                         WIREGUARD=1
+                        FIREWALL=1
                         V4L2LOOPBACK=1
+                        WACOM=1
                         shift
                         ;;
                     dnscrypt)
@@ -223,8 +229,16 @@ parse_args () {
                         WIREGUARD=1
                         shift
                         ;;
+                    firewall)
+                        FIREWALL=1
+                        shift
+                        ;;
                     v4l2loopback|v4l2)
                         V4L2LOOPBACK=1
+                        shift
+                        ;;
+                    wacom|tablet)
+                        WACOM=1
                         shift
                         ;;
                     *)
@@ -309,7 +323,9 @@ parse_args () {
                         OPENSSH=0
                         NOIP=0
                         WIREGUARD=0
+                        FIREWALL=0
                         V4L2LOOPBACK=0
+                        WACOM=0
                         shift
                         ;;
                     dnscrypt)
@@ -328,8 +344,16 @@ parse_args () {
                         WIREGUARD=0
                         shift
                         ;;
+                    firewall)
+                        FIREWALL=0
+                        shift
+                        ;;
                     v4l2loopback|v4l2)
                         V4L2LOOPBACK=0
+                        shift
+                        ;;
+                    wacom|tablet)
+                        WACOM=0
                         shift
                         ;;
                     zsh)
@@ -445,23 +469,48 @@ add_groups () {
 
 config_dnscrypt() {
     echo "Configuring dnscrypt-proxy..."
-    sudo cp -r ./etc/* /etc
+    sudo cp -r ./etc/dnscrypt-proxy ./etc/NetworkManager ./etc/systemd /etc
     sudo systemctl enable dnscrypt-proxy
 }
 
 config_openssh() {
     echo "Configuring OpenSSH..."
+    sudo cp -r ./etc/ssh /etc
     sudo systemctl enable sshd
 }
 
 config_noip() {
     echo "Configuring no-ip..."
+    sudo mkdir -p /etc/default
+    sudo cp -r ./etc/default/noip-duc /etc/default
     sudo systemctl enable noip
 }
 
 config_wireguard() {
     echo "Configuring Wireguard..."
+    sudo cp -r ./etc/wireguard /etc
     sudo systemctl enable wg-quick@wg0
+}
+
+config_firewall() {
+    echo "Configuring Firewall..."
+
+    sudo ufw allow 25565                                    # Minecraft
+    sudo ufw allow 50000                                    # qBitTorrent
+    sudo ufw allow 22/tcp                                   # SSH
+    sudo ufw allow in to any port 60000:61000 proto udp     # Mosh
+    sudo ufw allow 51820/udp                                # Wireguard
+    sudo ufw allow in on wg0 to any port 5900               # VNC on Wireguard
+    sudo ufw deny in on wlan0 to any port 5900              # VNC on Wi-Fi
+    sudo ufw deny in on enp4s0f3u1u4c2 to any port 5900     # VNC on Ethernet
+    sudo systemctl enable ufw
+    sudo ufw enable
+}
+
+config_wacom() {
+    echo "Configuring Wacom Tablet..."
+    sudo mkdir -p /etc/udev/rules.d
+    sudo cp -r ./etc/udev/rules.d/99-wacom-rotation.rules /etc/udev/rules.d
 }
 
 config_v4l2loopback () {
@@ -493,7 +542,9 @@ config_services () {
     [[ $OPENSSH == 1 ]] && config_openssh
     [[ $NOIP == 1 ]] && config_noip
     [[ $WIREGUARD == 1 ]] && config_wireguard
+    [[ $FIREWALL == 1 ]] && config_firewall
     [[ $V4L2LOOPBACK == 1 ]] && config_v4l2loopback
+    [[ $WACOM == 1 ]] && config_wacom
     popd || exit 2
 }
 
