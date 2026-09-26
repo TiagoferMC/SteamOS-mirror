@@ -383,6 +383,8 @@ parse_args () {
 
 clean() {
     paru -Scc --noconfirm
+    sudo -r /var/cache/pacman/pkg/download-*
+    rm -rf ~/.cache/paru/clone/*
 }
 
 install() {
