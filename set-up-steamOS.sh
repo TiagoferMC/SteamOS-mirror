@@ -386,18 +386,16 @@ clean() {
 }
 
 install() {
-    paru -Syu --needed --overwrite '*' "$@"
+    paru -Syu --needed --noconfirm --overwrite '*' "$@"
     clean
 }
 
 install_packages () {
-    local -a packages=()
-
     # Base utilities
     # util-linux is already required by base, as well as sed and (g)awk
     local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions bat
                    eza skim fzf ripgrep repgrep fd ttf-firacode-nerd)
-    [[ $BASE == 1 ]] && packages+=("${base[@]}")
+    [[ $BASE == 1 ]] && install "${base[@]}"
 
     # Network utilities
     # gnu-netcat and openbsd-netcat are both options
@@ -409,31 +407,31 @@ install_packages () {
                       nload vnstat speedtest-cli tcpdump termshark ufw gufw
                       ufw-extras conntrack-tools wireshark-qt wireshark-cli
                       geoip2-database dnscrypt-proxy wireguard-tools noip)
-    [[ $NETWORK == 1 ]] && packages+=("${network[@]}")
+    [[ $NETWORK == 1 ]] && install "${network[@]}"
 
     # DIsk utilities
     local -a disk=(testdisk rsync)
-    [[ $DISK == 1 ]] && packages+=("${disk[@]}")
+    [[ $DISK == 1 ]] && install "${disk[@]}"
 
     # Audio utilities
     local -a audio=(realtime-privileges)
-    [[ $AUDIO == 1 ]] && packages+=("${audio[@]}")
+    [[ $AUDIO == 1 ]] && install "${audio[@]}"
 
     # Input utilities
     local -a input=(xf86-input-wacom xf86-input-elographics onboard)
-    [[ $INPUT == 1 ]] && packages+=("${input[@]}")
+    [[ $INPUT == 1 ]] && install "${input[@]}"
 
     # Linux headers
     local -a headers
     [[ $HEADERS == 1 ]] && mapfile -t headers < <(pacman -Qq \
         | awk '/^linux(-[a-z0-9]+)*$/ && !/-headers/ && !/linux-firmware/ \
                { print $0 "-headers" }')
-    [[ $HEADERS == 1 ]] && packages+=("${headers[@]}")
+    [[ $HEADERS == 1 ]] && install "${headers[@]}"
 
     # Game utilitiess
     local -a game=(mangohud lib32-mangohud gamemode gamescope lib32-gamescope
                    xdg-desktop-portal-gamescope waydroid-helper-bin scopebuddy)
-    [[ $GAME == 1 ]] && packages+=("${game[@]}")
+    [[ $GAME == 1 ]] && install "${game[@]}"
 
     # Image utilities
     local -a image=(ffmpeg imagemagick ghostscript jbigkit libheif libjxl libraw
@@ -441,17 +439,15 @@ install_packages () {
                     libwmf libzip ocl-icd openexr openjpeg2 djvulibre pango
                     kdegraphics-thumbnailers qt5-imageformats qt6-imageformats
                     kimageformats kimageformats5 ffmpegthumbs ffmpegthumbnailer)
-    [[ $IMAGE == 1 ]] && packages+=("${image[@]}")
+    [[ $IMAGE == 1 ]] && install "${image[@]}"
 
     # Archive utilities
     local -a archive=(karchive karchive5 arj lrzip lzop 7zip unarchiver unrar)
-    [[ $ARCHIVE == 1 ]] && packages+=("${archive[@]}")
+    [[ $ARCHIVE == 1 ]] && install "${archive[@]}"
 
     # Video utilities
     local -a video=(scrcpy)
-    [[ $VIDEO == 1 ]] && packages+=("${video[@]}")
-
-    install "${packages[@]}"
+    [[ $VIDEO == 1 ]] && install "${video[@]}"
 }
 
 add_groups () {
@@ -560,7 +556,7 @@ main () {
         parse_args "$@"
     fi
 
-    [[ $UNLOCK == 1 ]] && steamos-devmode enable --no-prompt
+    [[ $UNLOCK == 1 ]] && sudo steamos-devmode enable --no-prompt
 
     [[ $INSTALL == 1 ]] && install_packages
 
