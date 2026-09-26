@@ -498,7 +498,7 @@ config_firewall() {
     sudo ufw allow 25565                                    # Minecraft
     sudo ufw allow 50000                                    # qBitTorrent
     sudo ufw allow 22/tcp                                   # SSH
-    sudo ufw allow in to any port 60000:61000 proto udp     # Mosh
+    sudo ufw allow 60000:61000/udp                          # Mosh
     sudo ufw allow 51820/udp                                # Wireguard
     sudo ufw allow in on wg0 to any port 5900               # VNC on Wireguard
     sudo ufw deny in on wlan0 to any port 5900              # VNC on Wi-Fi
