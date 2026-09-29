@@ -432,7 +432,8 @@ install_packages () {
 
     # Game utilitiess
     local -a game=(mangohud lib32-mangohud gamemode gamescope lib32-gamescope
-                   xdg-desktop-portal-gamescope waydroid-helper-bin scopebuddy)
+                   xdg-desktop-portal-gamescope waydroid-helper-bin scopebuddy
+                   yad)
     [[ $GAME == 1 ]] && install "${game[@]}"
 
     # Image utilities
