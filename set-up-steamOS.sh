@@ -494,6 +494,7 @@ config_firewall() {
     echo "Configuring Firewall..."
 
     sudo ufw allow 25565                                    # Minecraft
+    sudo ufw allow 53317                                    # LocalSend
     sudo ufw allow 50000                                    # qBitTorrent
     sudo ufw allow 22/tcp                                   # SSH
     sudo ufw allow 60000:61000/udp                          # Mosh
