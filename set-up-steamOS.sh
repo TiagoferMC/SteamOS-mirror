@@ -395,8 +395,9 @@ install() {
 install_packages () {
     # Base utilities
     # util-linux is already required by base, as well as sed and (g)awk
-    local -a base=(base base-devel moreutils bash zsh zsh-autosuggestions bat
-                   eza skim fzf ripgrep repgrep fd ttf-firacode-nerd)
+    local -a base=(base base-devel moreutils bash zsh ttf-firacode-nerd bat eza
+                   skim fd fzf ripgrep repgrep bash-completion zsh-completions
+                   git-zsh-completion zsh-autosuggestions)
     [[ $BASE == 1 ]] && install "${base[@]}"
 
     # Network utilities
