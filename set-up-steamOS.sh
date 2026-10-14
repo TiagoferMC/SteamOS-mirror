@@ -18,10 +18,12 @@ GAME=1
 IMAGE=1
 ARCHIVE=1
 VIDEO=1
+PRINTER=1
 
 # Group categories
 BASE_GROUP=1
 NETWORK_GROUP=1
+PRINTER_GROUP=1
 
 # Configure categories
 DNSCRYPT=1
@@ -65,10 +67,12 @@ parse_args () {
         IMAGE=0
         ARCHIVE=0
         VIDEO=0
+        PRINTER=0
 
         # Group categories
         BASE_GROUP=0
         NETWORK_GROUP=0
+        PRINTER_GROUP=0
 
         # Configure categories
         DNSCRYPT=0
@@ -125,19 +129,25 @@ parse_args () {
                         IMAGE=1
                         ARCHIVE=1
                         VIDEO=1
+                        PRINTER=1
+
                         GROUP=1
                         BASE_GROUP=1
                         NETWORK_GROUP=1
+                        PRINTER_GROUP=1
+
                         shift
                         ;;
                     base)
                         BASE=1
                         GROUP=1
+                        BASE_GROUP=1
                         shift
                         ;;
-                    network)
+                    network|net)
                         NETWORK=1
                         GROUP=1
+                        NETWORK_GROUP=1
                         shift
                         ;;
                     disk)
@@ -148,7 +158,7 @@ parse_args () {
                         AUDIO=1
                         shift
                         ;;
-                    input)
+                    input|wacom|tablet)
                         INPUT=1
                         shift
                         ;;
@@ -172,6 +182,12 @@ parse_args () {
                         VIDEO=1
                         shift
                         ;;
+                    printer|print|scanner|scan)
+                        PRINTER=1
+                        GROUP=1
+                        PRINTER_GROUP=1
+                        shift
+                        ;;
                     *)
                         break
                         ;;
@@ -192,6 +208,10 @@ parse_args () {
                         ;;
                     network)
                         NETWORK_GROUP=1
+                        shift
+                        ;;
+                    printer|print|scanner|scan)
+                        PRINTER_GROUP=1
                         shift
                         ;;
                     *)
@@ -269,14 +289,17 @@ parse_args () {
                         IMAGE=0
                         ARCHIVE=0
                         VIDEO=0
+                        PRINTER=0
                         shift
                         ;;
                     base)
                         BASE=0
+                        BASE_GROUP=0
                         shift
                         ;;
                     network)
                         NETWORK=0
+                        NETWORK_GROUP=0
                         shift
                         ;;
                     disk)
@@ -311,10 +334,16 @@ parse_args () {
                         VIDEO=0
                         shift
                         ;;
+                    print|printer|scan|scanner)
+                        PRINTER=0
+                        PRINTER_GROUP=0
+                        shift
+                        ;;
                     group|groups)
                         GROUP=0
                         BASE_GROUP=0
                         NETWORK_GROUP=0
+                        PRINTER_GROUP=0
                         shift
                         ;;
                     configure|config|conf)
@@ -452,6 +481,11 @@ install_packages () {
     # Video utilities
     local -a video=(scrcpy)
     [[ $VIDEO == 1 ]] && install "${video[@]}"
+
+    local -a printer=(cups cups-browsed cups-pk-helper cups-pdf cups-filters
+                      system-config-printer ipp-usb python-pycups python-pysmbc
+                      pappl apcupsd bluez-cups sane sane-airscan simple-scan)
+    [[ $PRINTER == 1 ]] && install "${printer[@]}"
 }
 
 add_groups () {
@@ -464,7 +498,11 @@ add_groups () {
     local -a network=(wireshark)
     [[ $NETWORK_GROUP == 1 ]] && groups+=("${network[@]}")
 
-    IFS=,; sudo usermod -aG "${groups[*]}" "$USER"
+    local -a printer=(lpadmin)
+    [[ $PRINTER_GROUP == 1 ]] && groups+=("${printer[@]}")
+
+    IFS=,; sudo groupadd -f "${groups[*]}" &&
+           sudo usermod -aG "${groups[*]}" "$USER"
 }
 
 config_dnscrypt() {
