@@ -533,17 +533,26 @@ config_wireguard() {
 config_firewall() {
     echo "Configuring Firewall..."
 
-    sudo ufw allow 25565                                    # Minecraft
-    sudo ufw allow 53317                                    # LocalSend
-    sudo ufw allow 50000                                    # qBitTorrent
-    sudo ufw allow 22/tcp                                   # SSH
-    sudo ufw allow 60000:61000/udp                          # Mosh
-    sudo ufw allow 51820/udp                                # Wireguard
-    sudo ufw allow in on wg0 to any port 5900               # VNC on Wireguard
-    sudo ufw deny in on wlan0 to any port 5900              # VNC on Wi-Fi
-    sudo ufw deny in on enp4s0f3u1u4c2 to any port 5900     # VNC on Ethernet
-    sudo systemctl enable ufw
+    sudo ufw default deny  incoming
+    sudo ufw default allow outgoing
+
+    sudo ufw allow 25565 \
+        comment 'Minecraft'
+    sudo ufw allow 53317 \
+        comment 'LocalSend'
+    sudo ufw allow 50000 \
+        comment 'Torrent'
+    sudo ufw allow 22/tcp \
+        comment 'SSH'
+    sudo ufw allow 60000:61000/udp \
+        comment 'Mosh'
+    sudo ufw allow 51820/udp \
+        comment 'WireGuard'
+    sudo ufw allow in on wg0            to any port 5900 \
+        comment 'VNC on WireGuard'
+
     sudo ufw enable
+    sudo systemctl enable ufw
 }
 
 config_wacom() {
