@@ -417,7 +417,7 @@ clean() {
 }
 
 install() {
-    paru -Syu --needed --noconfirm --overwrite '*' "$@"
+    paru -Syu --noconfirm --overwrite '*' "$@"
     clean
 }
 
@@ -479,7 +479,7 @@ install_packages () {
     [[ $ARCHIVE == 1 ]] && install "${archive[@]}"
 
     # Video utilities
-    local -a video=(scrcpy)
+    local -a video=(scrcpy wayland-boomer-git)
     [[ $VIDEO == 1 ]] && install "${video[@]}"
 
     local -a printer=(cups cups-browsed cups-pk-helper cups-pdf cups-filters
